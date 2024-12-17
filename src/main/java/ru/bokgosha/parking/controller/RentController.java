@@ -46,7 +46,9 @@ public class RentController {
 
     @GetMapping("/finish")
     public String finishRent(@AuthenticationPrincipal UserDetails userDetails, Model model, @RequestParam("rentId") Long rentId) {
-        rentService.finishRent(rentId);
+        if (!placeService.getPlace(rentService.getRent(rentId).getPlaceId()).isAvailable()) {
+            rentService.finishRent(rentId);
+        }
 
         User currentUser = userService.getUser(userDetails.getUsername());
         RentDTO rentDTO = rentService.getRent(currentUser.getRents().get(currentUser.getRents().size() - 1).getId());
