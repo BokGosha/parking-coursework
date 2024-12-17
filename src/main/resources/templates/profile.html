@@ -34,7 +34,7 @@
                 <td><a th:href="@{/places/{placeId}(placeId=${rent.rent.place.id})}" th:text="${rent.placeDescription}"></a></td>
                 <td>
                     <span th:if="${rent.rent.getFormattedFinishDate() == null}">
-                        <a th:href="@{'/rents?carId=' + ${rent.rent.place.id}}" class="btn btn-success">Активна</a>
+                        <a th:href="@{'/rents?placeId=' + ${rent.rent.place.id}}" class="btn btn-success">Активна</a>
                     </span>
                     <span th:unless="${rent.rent.getFormattedFinishDate() == null}">
                         <a th:href="@{'/rents/finish?rentId=' + ${rent.rent.id}}" class="btn btn-secondary">Закончена</a>
