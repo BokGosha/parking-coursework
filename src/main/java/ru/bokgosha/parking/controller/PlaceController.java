@@ -59,10 +59,13 @@ public class PlaceController {
     }
 
     @GetMapping("/filtered")
-    public String getFilteredCars(@RequestParam String value, Model model) {
+    public String getFilteredCars(@AuthenticationPrincipal UserDetails userDetails, @RequestParam String value, Model model) {
         List<PlaceDTO> filteredCars = placeService.getFilteredPlacesByAvailable(value);
+        User currentUser = userService.getUser(userDetails.getUsername());
 
         model.addAttribute("places", filteredCars);
+        model.addAttribute("userId", currentUser.getId());
+        model.addAttribute("userDetails", userDetails);
 
         return "places";
     }
