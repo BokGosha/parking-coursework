@@ -50,8 +50,7 @@ public class RentController {
             rentService.finishRent(rentId);
         }
 
-        User currentUser = userService.getUser(userDetails.getUsername());
-        RentDTO rentDTO = rentService.getRent(currentUser.getRents().get(currentUser.getRents().size() - 1).getId());
+        RentDTO rentDTO = rentService.getRent(rentId);
         PlaceDTO placeDTO = placeService.getPlace(rentDTO.getPlaceId());
 
         model.addAttribute("rent", rentDTO);
