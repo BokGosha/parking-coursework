@@ -1,23 +1,23 @@
 <header class="header bg-dark py-3">
     <div class="container">
-        <h1 class="text-light">Сервис парковки</h1>
-        <nav class="nav">
-            <ul class="nav justify-content-end">
-                <li class="nav-item"><a class="nav-link text-light" th:href="@{/}" style="transition: background-color 0.3s ease-out;">Главная</a></li>
-                <li class="nav-item"><a class="nav-link text-light" th:href="@{/places}" style="transition: background-color 0.3s ease-out;">Парковочные места</a></li>
+        <h1 class="text-light brand-title">Сервис парковки</h1>
+        <nav class="nav" aria-label="Главное меню">
+            <ul class="nav nav-list justify-content-end">
+                <li class="nav-item"><a class="nav-link text-light" th:href="@{/}">Главная</a></li>
+                <li class="nav-item"><a class="nav-link text-light" th:href="@{/places}">Парковочные места</a></li>
                 <li th:if="${userDetails != null}" class="nav-item">
-                    <a class="nav-link text-light" th:href="@{/profile}" style="transition: background-color 0.3s ease-out;">
+                    <a class="nav-link text-light" th:href="@{/profile}">
                         Профиль <span th:text="${userDetails.getUsername()}"></span>
                     </a>
                 </li>
                 <li th:if="${userDetails != null}" class="nav-item">
-                    <a class="nav-link text-light" th:href="@{/logout}" style="transition: background-color 0.3s ease-out;">Выход</a>
+                    <a class="nav-link text-light" th:href="@{/logout}">Выход</a>
                 </li>
                 <li th:unless="${userDetails != null}" class="nav-item">
-                    <a class="nav-link text-light" th:href="@{/login}" style="transition: background-color 0.3s ease-out;">Вход</a>
+                    <a class="nav-link text-light" th:href="@{/login}">Вход</a>
                 </li>
                 <li th:unless="${userDetails != null}" class="nav-item">
-                    <a class="nav-link text-light" th:href="@{/registration}" style="transition: background-color 0.3s ease-out;">Регистрация</a>
+                    <a class="nav-link text-light" th:href="@{/registration}">Регистрация</a>
                 </li>
             </ul>
         </nav>
