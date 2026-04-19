@@ -1,17 +1,24 @@
 package ru.bokgosha.parking.service;
 
-import ru.bokgosha.parking.DTO.RentDTO;
+import ru.bokgosha.parking.dto.RentDto;
 
 import java.util.List;
 
 public interface RentService {
 
-    List<RentDTO> getRents();
-    RentDTO getRent(Long id);
-    RentDTO setRent(Long userId, Long carId);
+    List<RentDto> getRents();
+
+    RentDto getRentById(Long id);
+
+    RentDto createRent(Long userId, Long placeId);
+
     void finishRent(Long id);
+
     void deleteRent(Long rentId);
+
     void deleteRents();
-    RentDTO getRentByCarIdAndUserId(Long carId, Long userId);
-    List<RentDTO> getFilteredRents(String filteredBy, String value);
+
+    RentDto getRentByCarIdAndUserId(Long carId, Long userId);
+
+    List<RentDto> getFilteredRents(String filteredBy, String value);
 }

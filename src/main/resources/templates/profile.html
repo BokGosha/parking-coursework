@@ -27,18 +27,15 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="rent : ${rentsWithDescriptions}">
-                <td th:text="${rent.rent.getFormattedStartDate()}"></td>
-                <td th:text="${rent.rent.getFormattedFinishDate()}"></td>
-                <td th:text="${rent.rent.getRentDurationInSeconds()}"></td>
-                <td><a th:href="@{/places/{placeId}(placeId=${rent.rent.place.id})}" th:text="${rent.placeDescription}"></a></td>
+            <tr th:each="rent : ${profile.rents}">
+                <td th:text="${rent.formattedStartDate}"></td>
+                <td th:text="${rent.formattedFinishDate} ?: '—'"></td>
+                <td th:text="${rent.durationInSeconds}"></td>
+                <td><a th:href="@{/places/{placeId}(placeId=${rent.placeId})}" th:text="${rent.placeNumber}"></a></td>
                 <td>
-                    <span th:if="${rent.rent.getFormattedFinishDate() == null}">
-                        <a th:href="@{'/rents?placeId=' + ${rent.rent.place.id}}" class="btn btn-success">Активна</a>
-                    </span>
-                    <span th:unless="${rent.rent.getFormattedFinishDate() == null}">
-                        <a th:href="@{'/rents/finish?rentId=' + ${rent.rent.id}}" class="btn btn-secondary">Закончена</a>
-                    </span>
+                    <a th:if="${rent.finishDate == null}"
+                       th:href="@{/rents(placeId=${rent.placeId})}" class="btn btn-success">Активна</a>
+                    <span th:unless="${rent.finishDate == null}" class="badge bg-secondary">Закончена</span>
                 </td>
             </tr>
             </tbody>

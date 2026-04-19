@@ -27,10 +27,10 @@
         <h2>Пользователи, бравшие парковочное место в аренду</h2>
         <ul class="list-group">
             <li class="list-group-item" th:each="rent : ${place.rents}">
-                <span th:text="${rent.user.username}"></span> -
-                <span th:text="${rent.getFormattedStartDate()}"></span> до
-                <span th:text="${rent.getFormattedFinishDate()}"></span> (продолжительность:
-                <span th:text="${rent.getRentDurationInSeconds()}"></span> секунд)
+                <span th:text="${rent.username}"></span> -
+                <span th:text="${rent.formattedStartDate}"></span> до
+                <span th:text="${rent.formattedFinishDate} ?: '—'"></span> (продолжительность:
+                <span th:text="${rent.durationInSeconds}"></span> секунд)
             </li>
         </ul>
     </div>

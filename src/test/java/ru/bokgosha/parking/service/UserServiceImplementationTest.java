@@ -9,14 +9,17 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import ru.bokgosha.parking.DTO.UserDTO;
+import ru.bokgosha.parking.dto.UserDto;
+import ru.bokgosha.parking.exception.UserAlreadyExistsException;
 import ru.bokgosha.parking.model.Role;
 import ru.bokgosha.parking.model.User;
+import ru.bokgosha.parking.repository.RoleRepository;
 import ru.bokgosha.parking.repository.UserRepository;
 import ru.bokgosha.parking.service.implementations.UserServiceImplementation;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,6 +31,9 @@ class UserServiceImplementationTest {
     private UserRepository userRepository;
 
     @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
     private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -35,13 +41,13 @@ class UserServiceImplementationTest {
 
     @Test
     void testAddExistingUser() {
-        UserDTO userDTO = new UserDTO();
+        UserDto userDTO = new UserDto();
         userDTO.setUsername("existingUser");
         userDTO.setPassword("password");
 
-        when(userRepository.getByUsername("existingUser")).thenReturn(new User());
+        when(userRepository.findUserByUsername("existingUser")).thenReturn(Optional.of(new User()));
 
-        assertThrows(Exception.class, () -> userService.add(userDTO));
+        assertThrows(UserAlreadyExistsException.class, () -> userService.createUser(userDTO));
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -50,9 +56,9 @@ class UserServiceImplementationTest {
         User testUser = new User();
         testUser.setUsername("testUser");
 
-        when(userRepository.getByUsername("testUser")).thenReturn(testUser);
+        when(userRepository.findUserByUsername("testUser")).thenReturn(Optional.of(testUser));
 
-        User retrievedUser = userService.getUser("testUser");
+        User retrievedUser = userService.getUserByUsername("testUser");
 
         assertNotNull(retrievedUser);
         assertEquals("testUser", retrievedUser.getUsername());
@@ -65,7 +71,7 @@ class UserServiceImplementationTest {
         testUser.setPassword("hashedPassword");
         testUser.setRoles(List.of(new Role("ROLE_ADMIN")));
 
-        when(userRepository.getByUsername("testUser")).thenReturn(testUser);
+        when(userRepository.findUserByUsername("testUser")).thenReturn(Optional.of(testUser));
 
         UserDetails userDetails = userService.loadUserByUsername("testUser");
 

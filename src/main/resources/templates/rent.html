@@ -20,7 +20,10 @@
         <h2 th:if="${rent.finishDate == null}">Секундомер аренды</h2>
         <p th:if="${rent.finishDate == null}" id="timer" th:data-start-date="${rent.startDate}" th:data-finish-date="${rent.finishDate}"> </p>
         <a th:if="${rent.finishDate != null}" href="/profile" class="text-white text-decoration-none bg-success p-2 rounded">Аренда завершена</a>
-        <a th:if="${rent.finishDate == null}" th:href="@{'/rents/finish?rentId=' + ${rent.id}}" class="btn btn-primary">Завершить аренду</a>
+        <form th:if="${rent.finishDate == null}" th:action="@{/rents/finish}" method="post" class="d-inline">
+            <input type="hidden" name="rentId" th:value="${rent.id}"/>
+            <button type="submit" class="btn btn-primary">Завершить аренду</button>
+        </form>
     </div>
 </main>
 

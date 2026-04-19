@@ -1,80 +1,93 @@
 package ru.bokgosha.parking.service.implementations;
 
-import jakarta.transaction.Transactional;
-import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.bokgosha.parking.DTO.UserDTO;
+import org.springframework.transaction.annotation.Transactional;
+import ru.bokgosha.parking.dto.ProfileDto;
+import ru.bokgosha.parking.dto.RentDto;
+import ru.bokgosha.parking.dto.TopUserDto;
+import ru.bokgosha.parking.dto.UserDto;
+import ru.bokgosha.parking.exception.UserAlreadyExistsException;
 import ru.bokgosha.parking.model.Role;
 import ru.bokgosha.parking.model.User;
+import ru.bokgosha.parking.repository.RentRepository;
+import ru.bokgosha.parking.repository.RoleRepository;
 import ru.bokgosha.parking.repository.UserRepository;
 import ru.bokgosha.parking.service.UserService;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class UserServiceImplementation implements UserService {
 
+    private static final String DEFAULT_ROLE = "ROLE_USER";
+    private static final int TOP_USERS_LIMIT = 10;
+
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final RentRepository rentRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    public UserServiceImplementation(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    public User add(UserDTO userDTO) throws Exception {
-        User newuser = userRepository.getByUsername(userDTO.getUsername());
-
-        if (newuser != null) {
-            throw new Exception();
-        } else {
-            User user = new User(userDTO.getUsername(),
-                    passwordEncoder.encode(userDTO.getPassword()),
-                    List.of(new Role("ROLE_ADMIN")));
-
-            return userRepository.save(user);
+    @Transactional
+    public User createUser(UserDto userDTO) {
+        if (userRepository.findUserByUsername(userDTO.getUsername()).isPresent()) {
+            throw new UserAlreadyExistsException("Пользователь с именем " + userDTO.getUsername() + " уже существует");
         }
+
+        Role userRole = roleRepository.findRoleByName(DEFAULT_ROLE)
+                .orElseGet(() -> roleRepository.save(new Role(DEFAULT_ROLE)));
+
+        User user = new User();
+        user.setUsername(userDTO.getUsername());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setRoles(List.of(userRole));
+
+        return userRepository.save(user);
     }
 
-    public User getUser(String username) {
-        User user = userRepository.getByUsername(username);
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Пользователь с id=" + id + " не найден"));
+    }
 
-        Hibernate.initialize(user.getRents());
-
-        return user;
+    public User getUserByUsername(String username) {
+        return userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Пользователь с username=" + username + " не найден"));
     }
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.getByUsername(username);
+        User user = userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Неверный username или пароль"));
 
-        if (user == null) {
-            throw new UsernameNotFoundException("Invalid username or password.");
-        }
-
-        return new org.springframework.security
-                .core.userdetails.User(user.getUsername(),
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
                 user.getPassword(),
                 mapRolesToAuthorities(user.getRoles()));
     }
 
-    public List<User> getTopUsers() {
-        List<User> allUsers = userRepository.findAll();
-        List<User> sortedUsers = allUsers.stream()
-                .sorted(Comparator.comparingInt(user -> -user.getRents().size()))
-                .collect(Collectors.toList());
+    public List<TopUserDto> getTopUsers() {
+        Pageable pageable = PageRequest.ofSize(TOP_USERS_LIMIT);
+        return userRepository.findTopUsers(pageable);
+    }
 
-        return sortedUsers.subList(0, Math.min(sortedUsers.size(), 10));
+    public ProfileDto getUserProfile(String username) {
+        List<RentDto> rents = rentRepository.findRentsByUsernameWithPlace(username)
+                .stream()
+                .map(RentDto::from)
+                .toList();
+
+        return new ProfileDto(username, rents);
     }
 
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {

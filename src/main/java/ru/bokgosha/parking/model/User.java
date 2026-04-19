@@ -1,16 +1,18 @@
 package ru.bokgosha.parking.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "users")
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
 public class User {
 
@@ -21,28 +23,27 @@ public class User {
 
     private String username;
     private String password;
-
-    @Column(name = "total_time")
     private Long totalTime;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Rent> rents = new ArrayList<>();
-
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
-            joinColumns = @JoinColumn
-                    (name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn
-                    (name = "role_id", referencedColumnName = "id"))
-    private Collection<Role> roles;
-
-    public User(String username, String password, Collection<Role> roleAdmin) {
-        this.username = username;
-        this.password = password;
-        this.roles = roleAdmin;
-    }
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private Collection<Role> roles = new ArrayList<>();
 
     public Long getTotalTime() {
         return totalTime == null ? 0L : totalTime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+        return id != null && id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

@@ -6,10 +6,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.bokgosha.parking.DTO.PlaceDTO;
-import ru.bokgosha.parking.DTO.RentDTO;
+import ru.bokgosha.parking.dto.PlaceDto;
+import ru.bokgosha.parking.dto.RentDto;
 import ru.bokgosha.parking.model.User;
 import ru.bokgosha.parking.service.PlaceService;
 import ru.bokgosha.parking.service.RentService;
@@ -25,17 +26,15 @@ public class RentController {
     private final UserService userService;
 
     @GetMapping
-    public String setRent(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("placeId") Long placeId, Model model) {
-        User currentUser = userService.getUser(userDetails.getUsername());
-        RentDTO rentDTO;
+    public String setRent(@AuthenticationPrincipal UserDetails userDetails,
+                          @RequestParam("placeId") Long placeId,
+                          Model model) {
+        User currentUser = userService.getUserByUsername(userDetails.getUsername());
+        RentDto rentDTO = placeService.getPlaceById(placeId).isAvailable()
+                ? rentService.createRent(currentUser.getId(), placeId)
+                : rentService.getRentByCarIdAndUserId(placeId, currentUser.getId());
 
-        if (placeService.getPlace(placeId).isAvailable()) {
-            rentDTO = rentService.setRent(currentUser.getId(), placeId);
-        } else {
-            rentDTO = rentService.getRentByCarIdAndUserId(placeId, currentUser.getId());
-        }
-
-        PlaceDTO placeDTO = placeService.getPlace(rentDTO.getPlaceId());
+        PlaceDto placeDTO = PlaceDto.from(placeService.getPlaceById(rentDTO.getPlaceId()));
 
         model.addAttribute("rent", rentDTO);
         model.addAttribute("place", placeDTO);
@@ -44,14 +43,14 @@ public class RentController {
         return "rent";
     }
 
-    @GetMapping("/finish")
-    public String finishRent(@AuthenticationPrincipal UserDetails userDetails, Model model, @RequestParam("rentId") Long rentId) {
-        if (!placeService.getPlace(rentService.getRent(rentId).getPlaceId()).isAvailable()) {
-            rentService.finishRent(rentId);
-        }
+    @PostMapping("/finish")
+    public String finishRent(@AuthenticationPrincipal UserDetails userDetails,
+                             Model model,
+                             @RequestParam("rentId") Long rentId) {
+        rentService.finishRent(rentId);
 
-        RentDTO rentDTO = rentService.getRent(rentId);
-        PlaceDTO placeDTO = placeService.getPlace(rentDTO.getPlaceId());
+        RentDto rentDTO = rentService.getRentById(rentId);
+        PlaceDto placeDTO = PlaceDto.from(placeService.getPlaceById(rentDTO.getPlaceId()));
 
         model.addAttribute("rent", rentDTO);
         model.addAttribute("place", placeDTO);

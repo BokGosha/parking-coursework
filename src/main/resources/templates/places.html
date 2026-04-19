@@ -18,10 +18,13 @@
     <form class="mb-3" action="/places/filtered" method="get">
         <div class="row g-3 align-items-end">
             <div class="col-auto">
-                <label class="col-form-label">Фильтрация по доступности:</label>
+                <label class="col-form-label" for="available">Фильтрация по доступности:</label>
             </div>
             <div class="col-auto">
-                <input type="text" class="form-control" name="value" placeholder="Значение">
+                <select id="available" class="form-select" name="available">
+                    <option value="true">Доступно</option>
+                    <option value="false">Занято</option>
+                </select>
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">Применить фильтр</button>

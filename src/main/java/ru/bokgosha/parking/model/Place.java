@@ -1,36 +1,36 @@
 package ru.bokgosha.parking.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import ru.bokgosha.parking.DTO.PlaceDTO;
+import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "places")
 public class Place {
 
     @Id
-    @SequenceGenerator(name = "cars_seq", sequenceName = "cars_sequence", allocationSize = 1)
-    @GeneratedValue(generator = "cars_seq", strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(name = "places_seq", sequenceName = "places_sequence", allocationSize = 1)
+    @GeneratedValue(generator = "places_seq", strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name = "number")
     private int number;
-
-    @Column(name = "available")
     private boolean available;
 
-    @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Rent> rents = new ArrayList<>();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Place place)) return false;
+        return id != null && id.equals(place.id);
+    }
 
-    public PlaceDTO toDto() {
-        return new PlaceDTO(id, number, available, rents);
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

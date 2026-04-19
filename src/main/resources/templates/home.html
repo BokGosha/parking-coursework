@@ -27,7 +27,7 @@
             <tbody>
             <tr th:each="user : ${topUsers}">
                 <td th:text="${user.username}"></td>
-                <td th:text="${user.rents.size()}"></td>
+                <td th:text="${user.rentsCount}"></td>
                 <td th:text="${user.totalTime}"></td>
             </tr>
             </tbody>

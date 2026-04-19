@@ -1,6 +1,6 @@
 package ru.bokgosha.parking.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -8,27 +8,23 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import ru.bokgosha.parking.DTO.UserDTO;
-import ru.bokgosha.parking.model.Rent;
-import ru.bokgosha.parking.model.RentWithPlaceDescription;
-import ru.bokgosha.parking.model.User;
+import ru.bokgosha.parking.dto.ProfileDto;
+import ru.bokgosha.parking.dto.TopUserDto;
+import ru.bokgosha.parking.dto.UserDto;
+import ru.bokgosha.parking.exception.UserAlreadyExistsException;
 import ru.bokgosha.parking.service.UserService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
+@RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
 
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserService userService;
 
     @GetMapping({"/", "/home"})
     public String homePage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        List<User> topUsers = userService.getTopUsers();
+        List<TopUserDto> topUsers = userService.getTopUsers();
 
         model.addAttribute("topUsers", topUsers);
         model.addAttribute("userDetails", userDetails);
@@ -38,13 +34,9 @@ public class UserController {
 
     @GetMapping("/profile")
     public String profilePage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User currentUser = userService.getUser(userDetails.getUsername());
-        List<Rent> userRents = currentUser.getRents();
-        List<RentWithPlaceDescription> rentsWithDescriptions = userRents.stream()
-                .map(rent -> new RentWithPlaceDescription(rent, String.valueOf(rent.getPlace().getNumber())))
-                .collect(Collectors.toList());
+        ProfileDto profile = userService.getUserProfile(userDetails.getUsername());
 
-        model.addAttribute("rentsWithDescriptions", rentsWithDescriptions);
+        model.addAttribute("profile", profile);
         model.addAttribute("userDetails", userDetails);
 
         return "profile";
@@ -59,20 +51,20 @@ public class UserController {
 
     @GetMapping("/registration")
     public String registrationPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        model.addAttribute("user", new UserDTO());
+        model.addAttribute("user", new UserDto());
         model.addAttribute("userDetails", userDetails);
 
         return "registration";
     }
 
     @PostMapping("/registration")
-    public String registerUser(@ModelAttribute("user") UserDTO userDTO) {
+    public String registerUser(@ModelAttribute("user") UserDto userDTO) {
         try {
-            userService.add(userDTO);
-        } catch(Exception e) {
+            userService.createUser(userDTO);
+        } catch (UserAlreadyExistsException e) {
             return "redirect:/registration?name_invalid";
         }
 
-        return "redirect:login";
+        return "redirect:/login";
     }
 }
